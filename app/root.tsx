@@ -8,7 +8,7 @@ import {
   Scripts,
   ScrollRestoration,
 } from "@remix-run/react";
-import { ReactNode } from "react";
+import { type ReactNode } from "react";
 
 import stylesheet from "~/tailwind.css";
 

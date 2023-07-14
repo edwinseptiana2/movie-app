@@ -26,9 +26,9 @@ export default function MovieId() {
         className=" h-[40vh] object-cover w-full rounded-lg"
       />
       <h1 className=" text-4xl font-bold text-center pt-5">{data.title}</h1>
-      <div className=" flex gap-x-10 mt-10  border p-3">
-        <div className=" w-1/2 font-medium">
-          <h1 className=" text-xl font-semibold mb-5 text-orange-500">
+      <div className=" flex flex-col  mt-10 sm:flex-row sm:gap-x-10">
+        <div className="w-full md:w-1/2 font-medium">
+          <h1 className="text-xl font-semibold mb-5 text-orange-500">
             Overview :
           </h1>
           <h1>
@@ -53,7 +53,7 @@ export default function MovieId() {
             <span className=" font-normal">{data.release_date}</span>
           </p>
         </div>
-        <div className="w-1/2">
+        <div className="w-full md:w-1/2">
           <Outlet />
         </div>
       </div>

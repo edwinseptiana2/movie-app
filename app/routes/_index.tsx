@@ -39,7 +39,10 @@ export default function Index() {
         </div>
         <div className="grid gap-4 sm:grid-cols-2 md:gap-6 lg:grid-cols-3 xl:grid-cols-4 xl:gap-8">
           {data.results.map((movie: any) => (
-            <div className=" flex flex-col overflow-hidden rounded-lg border bg-white">
+            <div
+              className=" flex flex-col overflow-hidden rounded-lg border bg-white"
+              key={movie.id}
+            >
               <Link
                 to={`movie/${movie.id}/comments`}
                 prefetch="intent"
