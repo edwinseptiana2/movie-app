@@ -21,7 +21,7 @@ export async function loader({}: LoaderArgs) {
         Authorization:
           "Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJiZDFmYWUzYzIxMjhhYjlmZjI0Yzk4NDhiZDIyMDVlZCIsInN1YiI6IjY0YWI4NzIxNjZhMGQzMDEwMGQ5ZTk3YSIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.3ag-MS6zj8rITe8AkJpJG0cj1FnV6p9EF6PEkjEkM7g",
       },
-    }
+    },
   );
   return json(await url.json());
 }
@@ -30,17 +30,17 @@ export default function Index() {
   const data = useLoaderData();
 
   return (
-    <div className=" bg-white py-6 sm:py-8 lg:py-12">
+    <div className="bg-white py-6 sm:py-8 lg:py-12">
       <div className="mx-auto max-w-screen-2xl px-4 md:px-8">
         <div className="mb-10 md:mb-16">
-          <h2 className=" mb-4 text-center text-2xl font-bold">
+          <h2 className="mb-4 text-center text-2xl font-bold">
             Top Trending Movies
           </h2>
         </div>
         <div className="grid gap-4 sm:grid-cols-2 md:gap-6 lg:grid-cols-3 xl:grid-cols-4 xl:gap-8">
           {data.results.map((movie: any) => (
             <div
-              className=" flex flex-col overflow-hidden rounded-lg border bg-white"
+              className="        flex flex-col overflow-hidden rounded-lg border bg-white"
               key={movie.id}
             >
               <Link
@@ -64,7 +64,7 @@ export default function Index() {
                     {movie.title}
                   </Link>
                 </h2>
-                <p className=" text-gray-500 line-clamp-3">{movie.overview}</p>
+                <p className=" line-clamp-3 text-gray-500">{movie.overview}</p>
               </div>
             </div>
           ))}

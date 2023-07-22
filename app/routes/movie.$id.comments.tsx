@@ -1,9 +1,4 @@
-import {
-  type LoaderArgs,
-  json,
-  type ActionArgs,
-  FormData,
-} from "@remix-run/node";
+import { type LoaderArgs, json, type ActionArgs } from "@remix-run/node";
 import {
   Form,
   useLoaderData,
@@ -79,7 +74,7 @@ export default function Comments() {
         <Form method="post" ref={formRef}>
           <textarea
             name="comment"
-            className=" w-full border border-orange-500 rounded-lg p-2 focus:ring-orange-600 focus:border-orange-600 focus:outline-orange-600"
+            className=" w-full border border-orange-500 rounded-lg p-2 focus-visible:outline focus-visible:border-orange-600 focus-visible:outline-orange-600 focus-visible:outline-1 mb-5"
             placeholder="Write your comment here..."
             ref={commentRef}
           />
@@ -104,7 +99,7 @@ export default function Comments() {
             </button>
           )}
         </Form>
-        <div className="mt-5 flex-col gap-y-3">
+        <div className="mt-5 gap-y-3 flex-col">
           <ul className="list-disc space-y-2 pl-4 text-sm">
             {data.map((comment) => (
               <CommentItem comment={comment} key={comment.id} />
