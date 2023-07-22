@@ -4,9 +4,72 @@ import {
   useLoaderData,
   useNavigation,
   useParams,
+  useActionData,
 } from "@remix-run/react";
 import { useEffect, useRef } from "react";
 import { db } from "~/utils/db.server";
+import { badRequest } from "~/utils/request.server";
+
+function validateCommentContent(content: String) {
+  if (content.length < 5) {
+    return "That conten is to short";
+  }
+}
+
+export async function action({ request }: ActionArgs) {
+  const formData = await request.formData();
+  const comment = formData.get("comment");
+  const MovieId = formData.get("id");
+  const { _action } = Object.fromEntries(formData);
+
+  //console.log(values);
+
+  if (_action === "create") {
+    // console.log(typeof comment);
+    // return 0;
+
+    if (typeof comment !== "string" || typeof MovieId !== "string") {
+      //throw new Error("Form not submitted correctly.");
+      return badRequest({
+        fieldErrors: null,
+        fields: null,
+        formError: "Form not submitted correctly",
+      });
+    }
+
+    const fieldErrors = {
+      comment: validateCommentContent(comment),
+    };
+
+    const fields = { comment };
+
+    if (Object.values(fieldErrors).some(Boolean)) {
+      return badRequest({
+        fieldErrors,
+        fields,
+        formError: null,
+      });
+    }
+    //const fields = { comment, MovieId };
+
+    const data = await db.comment.create({
+      data: { message: comment, MovieId: MovieId },
+    });
+    return json({ data });
+  }
+
+  if (_action === "delete") {
+    const id = formData.get("postId");
+    if (typeof id !== "string") {
+      throw new Error("Form not submitted correctly.");
+    }
+
+    const data = await db.comment.delete({
+      where: { id },
+    });
+    return json({ data });
+  }
+}
 
 export async function loader({ params }: LoaderArgs) {
   const data = await db.comment.findMany({
@@ -20,33 +83,10 @@ export async function loader({ params }: LoaderArgs) {
   return json({ data });
 }
 
-export async function action({ request }: ActionArgs) {
-  const formData = await request.formData();
-  const { _action } = Object.fromEntries(formData);
-
-  //console.log(values);
-
-  if (_action === "create") {
-    const data = await db.comment.create({
-      data: {
-        message: formData.get("comment") as String,
-        MovieId: formData.get("id") as String,
-      },
-    });
-    return json({ data });
-  }
-
-  if (_action === "delete") {
-    const data = await db.comment.delete({
-      where: { id: formData.get("postId") as String },
-    });
-    return json({ data });
-  }
-}
-
 const textareaClassName = `text-gray-600`;
 
 export default function Comments() {
+  const actionData = useActionData<typeof action>();
   const { id } = useParams();
   const { data } = useLoaderData();
   const navigation = useNavigation();
@@ -74,10 +114,24 @@ export default function Comments() {
         <Form method="post" ref={formRef}>
           <textarea
             name="comment"
-            className=" w-full border border-orange-500 rounded-lg p-2 focus-visible:outline focus-visible:border-orange-600 focus-visible:outline-orange-600 focus-visible:outline-1 mb-5"
+            className="w-full border border-orange-500 rounded-lg p-2 focus-visible:outline focus-visible:border-orange-600 focus-visible:outline-orange-600 focus-visible:outline-1 mb-5"
             placeholder="Write your comment here..."
             ref={commentRef}
+            value={actionData?.fields.comment}
+            aria-invalid={Boolean(actionData?.fieldErrors.comment)}
+            aria-errormessage={
+              actionData?.fieldErrors?.comment ? "comment-error" : undefined
+            }
           />
+          {actionData?.fieldErrors?.comment ? (
+            <p
+              className="form-validation-error mb-9"
+              id="name-error"
+              role="alert"
+            >
+              {actionData.fieldErrors.comment}
+            </p>
+          ) : null}
 
           <input type="hidden" name="id" value={id} />
           {isAdding ? (
@@ -101,7 +155,7 @@ export default function Comments() {
         </Form>
         <div className="mt-5 gap-y-3 flex-col">
           <ul className="list-disc space-y-2 pl-4 text-sm">
-            {data.map((comment) => (
+            {data.map((comment: any) => (
               <CommentItem comment={comment} key={comment.id} />
             ))}
           </ul>
@@ -111,7 +165,7 @@ export default function Comments() {
   );
 }
 
-function CommentItem({ comment }: any) {
+function CommentItem({ comment }: { comment: any }) {
   const navigation = useNavigation();
   const isDeleting = navigation.formData?.get("postId") === comment.id;
 
