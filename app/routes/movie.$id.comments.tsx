@@ -12,7 +12,7 @@ import { badRequest } from "~/utils/request.server";
 
 function validateCommentContent(content: String) {
   if (content.length < 5) {
-    return "That conten is to short";
+    return "That content is to short";
   }
 }
 
@@ -22,21 +22,17 @@ export async function action({ request }: ActionArgs) {
   const MovieId = formData.get("id");
   const { _action } = Object.fromEntries(formData);
 
-  //console.log(values);
-
   if (_action === "create") {
     // console.log(typeof comment);
     // return 0;
 
     if (typeof comment !== "string" || typeof MovieId !== "string") {
-      //throw new Error("Form not submitted correctly.");
       return badRequest({
         fieldErrors: null,
-        fields: null,
-        formError: "Form not submitted correctly",
+        field: null,
+        formError: "Form error string",
       });
     }
-
     const fieldErrors = {
       comment: validateCommentContent(comment),
     };
@@ -50,7 +46,6 @@ export async function action({ request }: ActionArgs) {
         formError: null,
       });
     }
-    //const fields = { comment, MovieId };
 
     const data = await db.comment.create({
       data: { message: comment, MovieId: MovieId },
@@ -91,9 +86,12 @@ export default function Comments() {
   const { data } = useLoaderData();
   const navigation = useNavigation();
 
+  console.log("action" + actionData);
+
   const isAdding =
     navigation.state === "submitting" &&
-    navigation.formData?.get("_action") === "create";
+    navigation.formData?.get("_action") === "create" &&
+    actionData?.status;
 
   let formRef = useRef<HTMLFormElement>(null);
   let commentRef = useRef<HTMLTextAreaElement>(null);
@@ -101,38 +99,38 @@ export default function Comments() {
   useEffect(() => {
     if (!isAdding) {
       formRef.current?.reset();
+      commentRef.current.value = "";
       commentRef.current?.focus();
     }
   }, [isAdding]);
 
   return (
-    <div className=" rounded-lg pt-7 sm:border sm:p-3">
-      <h1 className=" text-xl font-semibold mb-5 text-orange-500">
+    <div className="rounded-lg pt-7 sm:border sm:p-3">
+      <h1 className="text-xl font-semibold mb-5 text-orange-500">
         Your Opinion :
       </h1>
       <div>
         <Form method="post" ref={formRef}>
           <textarea
+            defaultValue={actionData?.fields?.comment}
             name="comment"
             className="w-full border border-orange-500 rounded-lg p-2 focus-visible:outline focus-visible:border-orange-600 focus-visible:outline-orange-600 focus-visible:outline-1 mb-5"
             placeholder="Write your comment here..."
             ref={commentRef}
-            value={actionData?.fields.comment}
-            aria-invalid={Boolean(actionData?.fieldErrors.comment)}
+            aria-invalid={Boolean(actionData?.fieldErrors?.comment)}
             aria-errormessage={
               actionData?.fieldErrors?.comment ? "comment-error" : undefined
             }
           />
           {actionData?.fieldErrors?.comment ? (
             <p
-              className="form-validation-error mb-9"
-              id="name-error"
+              className="form-validation-error"
+              id="comment-error"
               role="alert"
             >
               {actionData.fieldErrors.comment}
             </p>
           ) : null}
-
           <input type="hidden" name="id" value={id} />
           {isAdding ? (
             <button
