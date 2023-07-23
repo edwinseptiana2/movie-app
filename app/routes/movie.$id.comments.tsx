@@ -8,12 +8,11 @@ import {
 } from "@remix-run/react";
 import { useEffect, useRef } from "react";
 import { db } from "~/utils/db.server";
-import { badRequest } from "~/utils/request.server";
 
-function validateCommentContent(content: String) {
-  if (content.length < 5) {
-    return "That content is to short";
-  }
+interface ActionData {
+  errors?: {
+    comment: string;
+  };
 }
 
 export async function action({ request }: ActionArgs) {
@@ -23,28 +22,18 @@ export async function action({ request }: ActionArgs) {
   const { _action } = Object.fromEntries(formData);
 
   if (_action === "create") {
-    // console.log(typeof comment);
-    // return 0;
-
     if (typeof comment !== "string" || typeof MovieId !== "string") {
-      return badRequest({
-        fieldErrors: null,
-        field: null,
-        formError: "Form error string",
-      });
+      return json<ActionData>(
+        { errors: { comment: "Bukan string" } },
+        { status: 400 }
+      );
     }
-    const fieldErrors = {
-      comment: validateCommentContent(comment),
-    };
 
-    const fields = { comment };
-
-    if (Object.values(fieldErrors).some(Boolean)) {
-      return badRequest({
-        fieldErrors,
-        fields,
-        formError: null,
-      });
+    if (typeof comment !== "string" || comment.length < 5) {
+      return json<ActionData>(
+        { errors: { comment: "kurang dari 5 karakter" } },
+        { status: 400 }
+      );
     }
 
     const data = await db.comment.create({
@@ -81,28 +70,36 @@ export async function loader({ params }: LoaderArgs) {
 const textareaClassName = `text-gray-600`;
 
 export default function Comments() {
-  const actionData = useActionData<typeof action>();
   const { id } = useParams();
   const { data } = useLoaderData();
   const navigation = useNavigation();
+  const actionData = useActionData();
 
-  console.log("action" + actionData);
+  //console.log("state : " + state);
 
   const isAdding =
     navigation.state === "submitting" &&
-    navigation.formData?.get("_action") === "create" &&
-    actionData?.status;
+    navigation.formData?.get("_action") === "create";
 
   let formRef = useRef<HTMLFormElement>(null);
   let commentRef = useRef<HTMLTextAreaElement>(null);
 
+  // useEffect(() => {
+  //   if (!isAdding) {
+  //     formRef.current?.reset();
+  //     //commentRef.current.value = "";
+  //     commentRef.current?.focus();
+  //   }
+  // }, [isAdding]);
+
   useEffect(() => {
-    if (!isAdding) {
+    if (actionData?.errors?.comment) {
+      commentRef.current?.focus();
+    } else {
       formRef.current?.reset();
-      commentRef.current.value = "";
       commentRef.current?.focus();
     }
-  }, [isAdding]);
+  }, [actionData]);
 
   return (
     <div className="rounded-lg pt-7 sm:border sm:p-3">
@@ -112,25 +109,22 @@ export default function Comments() {
       <div>
         <Form method="post" ref={formRef}>
           <textarea
-            defaultValue={actionData?.fields?.comment}
+            //defaultValue={actionData?.data}
             name="comment"
             className="w-full border border-orange-500 rounded-lg p-2 focus-visible:outline focus-visible:border-orange-600 focus-visible:outline-orange-600 focus-visible:outline-1 mb-5"
             placeholder="Write your comment here..."
             ref={commentRef}
-            aria-invalid={Boolean(actionData?.fieldErrors?.comment)}
-            aria-errormessage={
-              actionData?.fieldErrors?.comment ? "comment-error" : undefined
-            }
+            aria-invalid={actionData?.errors?.comment ? true : undefined}
           />
-          {actionData?.fieldErrors?.comment ? (
+          {actionData?.errors?.comment && (
             <p
               className="form-validation-error"
               id="comment-error"
               role="alert"
             >
-              {actionData.fieldErrors.comment}
+              {actionData.errors.comment}
             </p>
-          ) : null}
+          )}
           <input type="hidden" name="id" value={id} />
           {isAdding ? (
             <button
